@@ -1,0 +1,38 @@
+# ── 游戏内运行时数据（含 API Key，绝不入库）─────────────────────────
+config.json
+ai_npc/config.json
+*.local.json
+
+# 扫描 / 生成产物：属于「某一款具体游戏」，不是源码
+worldbook.json
+actors_ai.json
+lorebook.json
+persona_input.json
+lorebook_input.json
+persona_last_fail.json
+startup.log
+*.log
+
+# 安装器备份
+plugins.js.bak-*
+
+# ── 依赖与构建 ──────────────────────────────────────────────────
+node_modules/
+dist/
+build/
+package-lock.json
+pnpm-lock.yaml
+
+# ── 编辑器 / 系统 ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ── 临时与调试 ──────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+_scratch/

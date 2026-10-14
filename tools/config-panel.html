@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>AI NPC 配置面板</title>
+<style>
+:root{
+  --bg:#0e1116; --card:#161a22; --card2:#1b2029; --line:#262d3a; --line2:#323a4a;
+  --fg:#e8ebf2; --dim:#8b94a7; --dim2:#68718a;
+  --accent:#5b8cff; --accent2:#7ba3ff; --ok:#34d399; --warn:#fbbf24; --err:#f87171;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#0e1116;
+  background:var(--bg); color:#e8ebf2; color:var(--fg); font-size:14px; line-height:1.55;
+  font-family:"Segoe UI","Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+header{
+  position:sticky; top:0; z-index:20; background:rgba(14,17,22,.92);
+  backdrop-filter:blur(10px); border-bottom:1px solid #262d3a; border-bottom:1px solid var(--line);
+  padding:14px 22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+header h1{font-size:16px; margin:0; font-weight:600; letter-spacing:.3px;}
+header .sub{color:#68718a;color:var(--dim2); font-size:12px;}
+.badge{
+  font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid #323a4a; border:1px solid var(--line2);
+  color:#8b94a7;
+  color:var(--dim); white-space:nowrap;
+}
+#badgeSource{max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.badge.on{color:#34d399;color:var(--ok); border-color:rgba(52,211,153,.4); background:rgba(52,211,153,.08);}
+.badge.sim{color:#fbbf24;color:var(--warn); border-color:rgba(251,191,36,.4); background:rgba(251,191,36,.08);}
+.badge.err{color:#f87171;color:var(--err); border-color:rgba(248,113,113,.4); background:rgba(248,113,113,.08);}
+.spacer{flex:1;}
+
+main{max-width:920px; margin:0 auto; padding:20px 22px 120px;}
+
+.card{
+  background:#161a22;
+  background:var(--card); border:1px solid #262d3a; border:1px solid var(--line); border-radius:12px;
+  margin-bottom:16px; overflow:hidden;
+}
+.card > .hd{
+  padding:13px 18px; border-bottom:1px solid #262d3a; border-bottom:1px solid var(--line); background:#1b2029; background:var(--card2);
+  display:flex; align-items:center; gap:10px; cursor:default;
+}
+.card > .hd h2{font-size:13.5px; margin:0; font-weight:600; color:#e8ebf2; color:var(--fg);}
+.card > .hd .tag{font-size:11px; color:#68718a; color:var(--dim2);}
+.card > .bd{padding:16px 18px;}
+
+details.card > summary{
+  padding:13px 18px; background:#1b2029; background:var(--card2); cursor:pointer; list-style:none;
+  font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:8px;
+  border-bottom:1px solid transparent;
+}
+details.card[open] > summary{border-bottom-color:#262d3a;border-bottom-color:var(--line);}
+details.card > summary::-webkit-details-marker{display:none;}
+details.card > summary::before{content:"▸"; color:#68718a; color:var(--dim2); transition:transform .15s; display:inline-block;}
+details.card[open] > summary::before{transform:rotate(90deg);}
+details.card > .bd{padding:16px 18px;}
+
+.providers{display:flex; flex-wrap:wrap; gap:8px;}
+.prov{
+  padding:7px 14px; border-radius:8px; border:1px solid #323a4a; border:1px solid var(--line2); background:#1b2029; background:var(--card2);
+  color:#8b94a7;
+  color:var(--dim); cursor:pointer; font-size:12.5px; transition:all .12s; user-select:none;
+}
+.prov:hover{border-color:#5b8cff;border-color:var(--accent); color:#e8ebf2; color:var(--fg);}
+.prov.active{border-color:#5b8cff;border-color:var(--accent); background:rgba(91,140,255,.14); color:#7ba3ff; color:var(--accent2);}
+
+.row{display:flex; align-items:flex-start; gap:14px; padding:9px 0;}
+.row + .row{border-top:1px solid rgba(38,45,58,.5);}
+.row > label{
+  flex:0 0 210px; padding-top:5px; font-size:13px; color:#e8ebf2; color:var(--fg);
+}
+.row .ctl{flex:1; min-width:0;}
+.row .hint{font-size:11.5px; color:#68718a; color:var(--dim2); margin-top:4px; line-height:1.45;}
+
+input[type=text],input[type=password],input[type=number],select{
+  width:100%; padding:8px 11px; background:#0b0e13; border:1px solid #323a4a; border:1px solid var(--line2);
+  border-radius:7px; color:#e8ebf2; color:var(--fg); font-size:13px; font-family:inherit;
+  transition:border-color .12s,box-shadow .12s;
+}
+input:focus,select:focus{outline:none; border-color:#5b8cff; border-color:var(--accent); box-shadow:0 0 0 3px rgba(91,140,255,.14);}
+input:disabled{opacity:.45; cursor:not-allowed;}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:40px;}
+.pw-eye{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:#68718a; color:var(--dim2); cursor:pointer; font-size:15px;
+  padding:4px 7px; border-radius:5px; line-height:1;
+}
+.pw-eye:hover{color:#e8ebf2;color:var(--fg); background:rgba(255,255,255,.06);}
+
+.sw{position:relative; display:inline-block; width:42px; height:23px; flex:0 0 auto; cursor:pointer; margin-top:3px;}
+.sw input{opacity:0; width:0; height:0; position:absolute;}
+.sw .sl{
+  position:absolute; top:0; right:0; bottom:0; left:0; inset:0; background:#2c3442; border-radius:23px; transition:.17s;
+}
+.sw .sl::before{
+  content:""; position:absolute; height:17px; width:17px; left:3px; top:3px;
+  background:#8b94a7; border-radius:50%; transition:.17s;
+}
+.sw input:checked + .sl{background:rgba(91,140,255,.35);}
+.sw input:checked + .sl::before{transform:translateX(19px); background:#5b8cff; background:var(--accent);}
+
+.actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+button.btn{
+  padding:8px 16px; border-radius:8px; border:1px solid #323a4a; border:1px solid var(--line2); background:#1b2029; background:var(--card2);
+  color:#e8ebf2;
+  color:var(--fg); cursor:pointer; font-size:13px; font-family:inherit; transition:all .12s;
+}
+button.btn:hover{border-color:#5b8cff;border-color:var(--accent); background:#222836;}
+button.btn:disabled{opacity:.5; cursor:not-allowed;}
+button.btn.primary{background:#5b8cff;background:var(--accent); border-color:#5b8cff; border-color:var(--accent); color:#fff; font-weight:600;}
+button.btn.primary:hover{background:#7ba3ff;background:var(--accent2);}
+button.btn.ghost{background:transparent;}
+
+#result{margin-top:12px; font-size:12.5px; padding:10px 13px; border-radius:8px; display:none; white-space:pre-wrap; word-break:break-all;}
+#result.ok{display:block; background:rgba(52,211,153,.08); border:1px solid rgba(52,211,153,.35); color:#7ee7bd;}
+#result.err{display:block; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.35); color:#ffa8a8;}
+#result.busy{display:block; background:rgba(91,140,255,.08); border:1px solid rgba(91,140,255,.35); color:#a8c4ff;}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px;}
+.stat{background:#1b2029;background:var(--card2); border:1px solid #262d3a; border:1px solid var(--line); border-radius:9px; padding:11px 13px;}
+.stat .n{font-size:19px; font-weight:600; color:#7ba3ff; color:var(--accent2); line-height:1.25;}
+.stat .t{font-size:11.5px; color:#68718a; color:var(--dim2); margin-top:2px;}
+
+footer{
+  position:fixed; left:0; right:0; bottom:0; z-index:20;
+  background:rgba(14,17,22,.94); backdrop-filter:blur(10px);
+  border-top:1px solid #262d3a;
+  border-top:1px solid var(--line); padding:12px 22px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+#saveMsg{font-size:12.5px; color:#8b94a7; color:var(--dim);}
+#saveMsg.ok{color:#34d399;color:var(--ok);}
+#saveMsg.err{color:#f87171;color:var(--err);}
+.warnbar{
+  background:rgba(251,191,36,.08); border:1px solid rgba(251,191,36,.3); color:#f5cf7a;
+  padding:10px 14px; border-radius:9px; font-size:12.5px; margin-bottom:16px;
+}
+code{background:#0b0e13; padding:1.5px 6px; border-radius:4px; font-size:12px; color:#9fb4de;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI NPC 配置</h1>
+  <span class="sub" id="modeLabel">检测中…</span>
+  <span class="spacer"></span>
+  <span class="badge" id="badgeState">未就绪</span>
+  <span class="badge" id="badgeSource">—</span>
+</header>
+
+<main>
+  <div id="topWarn"></div>
+
+  <div class="card">
+    <div class="hd"><h2>运行环境</h2><span class="tag" id="envTag"></span></div>
+    <div class="bd">
+      <div class="stats" id="stats"><div class="stat"><div class="n">—</div><div class="t">加载中</div></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>模型服务</h2><span class="tag">填好 API Key 就能联网；留空则走仿真模式</span></div>
+    <div class="bd">
+      <div class="providers" id="providers"></div>
+      <div style="height:14px"></div>
+      <div id="connFields"></div>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn" id="btnTest">测试连接</button>
+        <button class="btn ghost" id="btnModels">拉取模型列表</button>
+        <span style="font-size:12px;color:#68718a;color:var(--dim2)">测试会真实发一次请求，只花几十个 token</span>
+      </div>
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>对话行为</h2></div>
+    <div class="bd" id="talkFields"></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>玩法规则</h2><span class="tag">讲价 / 偷窃 / 抢劫</span></div>
+    <div class="bd" id="playFields"></div>
+  </div>
+  <div class="card">
+    <div class="hd"><h2>声望</h2><span class="tag">全镇风评：所有商人路人共用</span></div>
+    <div class="bd" id="repFields"></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>交情</h2><span class="tag">每个角色独有：和他说过话才解锁</span></div>
+    <div class="bd" id="affFields"></div>
+  </div>
+
+  <div class="card">
+    <div class="hd"><h2>讲价与经营</h2><span class="tag">次数上限 / 成功率 / 旅店住宿 / 加盟分红</span></div>
+    <div class="bd" id="hgFields"></div>
+  </div>
+
+  <details class="card">
+    <summary>高级（一般不用改）</summary>
+    <div class="bd" id="advFields"></div>
+  </details>
+
+  <div class="card">
+    <div class="hd"><h2>关于改完生效</h2></div>
+    <div class="bd" style="font-size:13px;color:#8b94a7;color:var(--dim)">
+      保存后会写回 <code>www/ai_npc/config.json</code>。若面板是从游戏里打开的，游戏会在你下次和 NPC 搭话时自动读取新配置，<b>不用重启</b>。
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="btnFolder">打开配置所在文件夹</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <button class="btn primary" id="btnSave">保存配置</button>
+  <button class="btn ghost" id="btnReload">放弃改动，重新载入</button>
+  <span id="saveMsg"></span>
+</footer>
+
+<script>
+"use strict";
+
+/* ---------------------------------------------------------------- 环境探测 */
+var ENV = { mode: 'unknown', req: null, fs: null, path: null, dir: '', href: '' };
+
+/** 路径里出现裸 % 等非法转义时 decodeURIComponent 会抛异常，别让整个探测挂掉 */
+function safeDecode(s) { try { return decodeURIComponent(s); } catch (e) { return String(s); } }
+
+/**
+ * 问游戏本体要 www 目录 —— 这是最准的一条路。
+ *
+ * 这个游戏的页面 URL 是 chrome-extension://<id>/www/index.html，
+ * 光靠 location.pathname 只能拿到 /www/ai_npc/… ，推不出磁盘上的完整路径；
+ * 而游戏窗口里的 RM_AI_NPC.basePath() 是实打实探测出来的，直接问它。
+ * 独立窗口问 window.opener，游戏内嵌 iframe 问 window.parent。
+ */
+function gameBasePath() {
+  var cands = [];
+  try { if (window.opener) cands.push(window.opener); } catch (e) { }
+  try { if (window.parent && window.parent !== window) cands.push(window.parent); } catch (e) { }
+  for (var i = 0; i < cands.length; i++) {
+    try {
+      var g = cands[i].RM_AI_NPC;
+      if (g && typeof g.basePath === 'function') {
+        var bp = g.basePath();
+        if (bp) return String(bp);
+      }
+    } catch (e) { }
+  }
+  return '';
+}
+
+/** 游戏窗口对象（保存后通知它重载配置用） */
+function gameHost() {
+  try { if (window.opener) return window.opener; } catch (e) { }
+  try { if (window.parent && window.parent !== window) return window.parent; } catch (e) { }
+  return null;
+}
+
+(function detect() {
+  try {
+    if (typeof require === 'function') ENV.req = require;
+    else if (window.nw && typeof window.nw.require === 'function') ENV.req = window.nw.require;
+  } catch (e) { }
+  if (ENV.req) {
+    try {
+      var fs = ENV.req('fs'), path = ENV.req('path');
+      var dir = '';
+
+      // ① 最优：直接问游戏本体
+      var bp = gameBasePath();
+      if (bp) dir = String(bp).replace(/[\\/]+$/, '') + '/ai_npc';
+
+      // ② 从 location.pathname 推。两种形态要分开处理：
+      //    a) file:///D:/game/www/ai_npc/config-panel.html —— pathname 本身就是完整磁盘路径
+      //    b) chrome-extension://<id>/www/ai_npc/config-panel.html —— pathname 只有 /www/ai_npc，
+      //       得接到进程工作目录上；注意别把 "D:" 这种盘符当成相对路径再拼一次
+      if (!dir) {
+        var pn = safeDecode(location.pathname || '');
+        var noFile = pn.replace(/[\\/][^\\/]*$/, '');
+        var direct = /^\/[A-Za-z]:/.test(noFile) ? noFile.slice(1) : '';
+
+        if (direct && fs.existsSync(direct)) {
+          dir = direct;                                  // a) 正常情况
+        } else {
+          var rel = pn.replace(/^\/+/, '').replace(/[\\/][^\\/]*$/, '');
+          var cwd = (typeof process !== 'undefined' && process.cwd) ? process.cwd() : '';
+          if (direct) {
+            dir = direct;                                // a) 目录还没建（首次使用），照用
+          } else if (cwd && rel) {
+            var guess = path.join(cwd, rel.replace(/\//g, path.sep));
+            if (fs.existsSync(guess)) dir = guess;       // b) 拼出来存在 → 就用它
+            if (!dir) {
+              var cwdAI = path.join(cwd, 'ai_npc');
+              if (fs.existsSync(cwdAI)) dir = cwdAI;     // b) 退一步：cwd/ai_npc
+            }
+            if (!dir) dir = guess || cwdAI;
+          }
+        }
+      }
+
+      // 有 require = 有文件权限，认领为 NW 模式。
+      // 注意不能要求 config.json 必须已存在 —— 首次使用时它本来就还没有。
+      if (dir) { ENV.mode = 'nw'; ENV.fs = fs; ENV.path = path; ENV.dir = dir; }
+    } catch (e) { }
+  }
+  // 没有文件权限，也没连上本地服务：如果是直接双击打开的本地 html，
+  // 就退化成「手动导入 / 导出」模式（Chromium 下仍可写回原文件）。
+  if (ENV.mode === 'unknown') {
+    ENV.mode = /^file:/i.test(location.protocol || '') ? 'file' : 'http';
+  }
+})();
+
+var IS_NW = ENV.mode === 'nw';
+var IS_FILE = ENV.mode === 'file';
+var CFG_FILE = IS_NW ? ENV.path.join(ENV.dir, 'config.json') : '';
+
+/* ---------------------------------------------------------------- 浏览器直开模式
+ * 没有 Node、也不从游戏里进来时，浏览器不允许网页随便读写磁盘。
+ * 但 Chromium 系（Edge / Chrome）有 File System Access API：
+ * 用户点一次「导入」，我们就拿到文件句柄，之后「保存」可以直接写回同一个文件。
+ * 老浏览器退化成「下载 config.json，自己覆盖回去」。 */
+var FILE_HANDLE = null;    // FileSystemFileHandle
+var FILE_RAW = null;       // 已导入的原始 JSON
+
+function fileImport() {
+  if (window.showOpenFilePicker) {
+    return window.showOpenFilePicker({
+      types: [{ description: 'config.json', accept: { 'application/json': ['.json'] } }],
+      multiple: false
+    }).then(function (hs) { FILE_HANDLE = hs[0]; return FILE_HANDLE.getFile(); })
+      .then(function (f) { return f.text(); });
+  }
+  return new Promise(function (res, rej) {
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0];
+      if (!f) return rej(new Error('没有选择文件'));
+      var fr = new FileReader();
+      fr.onload = function () { res(String(fr.result)); };
+      fr.onerror = function () { rej(new Error('读取失败')); };
+      fr.readAsText(f);
+    };
+    inp.click();
+  });
+}
+
+function fileSaveText(text) {
+  return new Promise(function (res) {
+    function writeVia(handle) {
+      FILE_HANDLE = handle;
+      return handle.createWritable()
+        .then(function (w) { return w.write(text).then(function () { return w.close(); }); })
+        .then(function () { res({ ok: true, path: handle.name }); })
+        .catch(function (e) { res({ ok: false, error: e.message }); });
+    }
+    if (FILE_HANDLE && FILE_HANDLE.createWritable) return writeVia(FILE_HANDLE);
+    if (window.showSaveFilePicker) {
+      return window.showSaveFilePicker({
+        suggestedName: 'config.json',
+        types: [{ description: 'config.json', accept: { 'application/json': ['.json'] } }]
+      }).then(writeVia, function (e) {
+        if (e && e.name === 'AbortError') return res({ ok: false, error: '已取消' });
+        res({ ok: false, error: e.message || String(e) });
+      });
+    }
+    // 最兜底：下载
+    try {
+      var blob = new Blob([text], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'config.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      res({ ok: true, path: 'config.json', downloaded: true });
+    } catch (e2) { res({ ok: false, error: e2.message }); }
+  });
+}
+
+/* ---------------------------------------------------------------- 后端适配 */
+function httpApi(name, payload) {
+  return fetch('/api/' + name, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {})
+  }).then(function (r) { return r.json(); });
+}
+
+/* 【v2.9.1】Endpoint 自动补全 —— 与插件里 Ainpc.normalizeEndpoint 同一套规则。
+ * 中转站（new-api / one-api 那类）在控制台上给的是**站点域名**，真正的接口是
+ * /v1/chat/completions。玩家照抄域名，请求就打到首页去了，服务端回的是 HTML，
+ * 「测试连接」会显示成功的 200 但拿不到任何内容。这里在发请求前先把地址补齐。
+ * 只补「明显没填完」的，玩家明确指定的路径一律不动。 */
+function normEp(u) {
+  var s = String(u || '').trim();
+  if (!s) return s;
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = 'https://' + s;
+  s = s.replace(/\/+$/, '');
+  if (/\/chat\/completions$/i.test(s)) return s;
+  var m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([?][^#]*)?(#.*)?$/i.exec(s);
+  var m2 = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*(\/[^?#]*)?/i.exec(s);
+  var path = '';
+  if (m) path = ''; else if (m2) path = m2[1] || '';
+  if (path === '' || path === '/') return s + '/v1/chat/completions';
+  if (/\/(v1|openai|api\/v1)$/i.test(path)) return s + '/chat/completions';
+  return s;
+}
+
+/** 返回一份 endpoint 已补全的配置副本（不改动原对象） */
+function normCfg(cfg) {
+  var o = {};
+  Object.keys(cfg || {}).forEach(function (k) { o[k] = cfg[k]; });
+  o.endpoint = normEp(cfg && cfg.endpoint);
+  return o;
+}
+
+var BE = {
+  /** 浏览器直开模式：把「导入」当作载入来源 */
+  importConfig: function () {
+    return fileImport().then(function (txt) {
+      var o = JSON.parse(String(txt).replace(/^\uFEFF/, ''));
+      FILE_RAW = o;
+      return { ok: true, config: o, raw: o, path: (FILE_HANDLE && FILE_HANDLE.name) || 'config.json', existed: true };
+    });
+  },
+  loadConfig: function () {
+    if (IS_FILE) {
+      return new Promise(function (res) {
+        if (FILE_RAW) return res({ ok: true, config: FILE_RAW, raw: FILE_RAW, path: (FILE_HANDLE && FILE_HANDLE.name) || 'config.json', existed: true });
+        res({ ok: true, config: {}, raw: {}, path: '(尚未导入)', existed: false, needImport: true });
+      });
+    }
+    if (!IS_NW) return httpApi('load');
+    return new Promise(function (res) {
+      try {
+        if (!ENV.fs.existsSync(CFG_FILE)) return res({ ok: true, config: {}, raw: {}, path: CFG_FILE, existed: false });
+        var txt = ENV.fs.readFileSync(CFG_FILE, 'utf8').replace(/^\uFEFF/, '');
+        var o = JSON.parse(txt);
+        res({ ok: true, config: o, raw: o, path: CFG_FILE, existed: true });
+      } catch (e) { res({ ok: false, error: e.message }); }
+    });
+  },
+  saveConfig: function (raw, values) {
+    var out = {};
+    Object.keys(raw || {}).forEach(function (k) { out[k] = raw[k]; });
+    Object.keys(values).forEach(function (k) { out[k] = values[k]; });
+    out._说明 = 'AI NPC 配置。apiKey 留空 = 仿真模式（不联网）。改完保存即可，游戏下次搭话时自动读取。';
+    if (IS_FILE) return fileSaveText(JSON.stringify(out, null, 2) + '\n');
+    if (!IS_NW) return httpApi('save', { raw: raw, values: values });
+    return new Promise(function (res) {
+      try {
+        var bak = CFG_FILE + '.bak';
+        try { if (ENV.fs.existsSync(CFG_FILE)) ENV.fs.copyFileSync(CFG_FILE, bak); } catch (e) { }
+        ENV.fs.writeFileSync(CFG_FILE, JSON.stringify(out, null, 2) + '\n', 'utf8');
+        // 通知游戏立即重载
+        var reloaded = false;
+        try {
+          var host = gameHost();     // 独立窗口是 opener，游戏内嵌 iframe 是 parent
+          var g = host && host.RM_AI_NPC;
+          if (g && typeof g.loadConfig === 'function') { g.loadConfig(); reloaded = true; }
+        } catch (e) { }
+        res({ ok: true, path: CFG_FILE, reloaded: reloaded });
+      } catch (e) { res({ ok: false, error: e.message }); }
+    });
+  },
+  test: function (cfg) {
+    cfg = normCfg(cfg);   /* v2.9.1：先补全 Endpoint，再走下面的两种通道 */
+    if (IS_FILE) return Promise.resolve({ ok: false, error: '浏览器直开模式受跨域限制，无法联网测试。请用游戏内面板（F10），或双击「打开配置面板.bat」用本地服务。' });
+    if (!IS_NW) return httpApi('test', cfg);
+    return new Promise(function (res) {
+      var https, http, t0 = Date.now(), u;
+      try { https = ENV.req('https'); http = ENV.req('http'); } catch (e) { return res({ ok: false, error: '无法加载网络模块' }); }
+      try { u = new URL(cfg.endpoint); } catch (e) { return res({ ok: false, error: 'Endpoint 不是合法 URL' }); }
+      var body = JSON.stringify({
+        model: cfg.model,
+        messages: [{ role: 'user', content: '只回复两个字：可用' }],
+        max_tokens: 24, stream: false
+      });
+      var mod = u.protocol === 'https:' ? https : http;
+      var req = mod.request({
+        protocol: u.protocol, hostname: u.hostname,
+        port: u.port || (u.protocol === 'https:' ? 443 : 80),
+        path: (u.pathname || '/') + (u.search || ''), method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body, 'utf8'),
+          'Authorization': 'Bearer ' + cfg.apiKey
+        }
+      }, function (r) {
+        var ch = [];
+        r.on('data', function (c) { ch.push(c); });
+        r.on('end', function () {
+          var txt = Buffer.concat(ch).toString('utf8');
+          var ms = Date.now() - t0;
+          if (r.statusCode >= 200 && r.statusCode < 300) {
+            /* v2.9.1：200 但不是 JSON —— 最典型的就是 Endpoint 只填到域名，打到了站点首页。
+             * 原来会显示「✔ 可用（空回复）」，让玩家以为通了。现在直接说清楚。 */
+            if (/^\s*<(!doctype|html|head|body)/i.test(txt)) {
+              return res({ ok: false, ms: ms, status: r.statusCode, error:
+                '服务端返回的是网页（HTML）不是 JSON —— Endpoint 多半只填到了域名，'
+                + '应填到 ' + normEp(cfg.endpoint) });
+            }
+            var reply = '';
+            try { var j = JSON.parse(txt); reply = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || ''; } catch (e) { }
+            res({ ok: true, ms: ms, reply: reply || '(空回复)', status: r.statusCode });
+          } else {
+            var msg = txt.slice(0, 500);
+            try { var j2 = JSON.parse(txt); if (j2.error) msg = j2.error.message || j2.error.code || msg; } catch (e) { }
+            res({ ok: false, ms: ms, status: r.statusCode, error: msg });
+          }
+        });
+      });
+      req.on('error', function (e) { res({ ok: false, error: e.message }); });
+      req.setTimeout(cfg.timeoutMs || 30000, function () {
+        try { req.abort(); } catch (e) { } res({ ok: false, error: '请求超时（' + ((cfg.timeoutMs || 30000) / 1000) + ' 秒）' });
+      });
+      req.write(body); req.end();
+    });
+  },
+  models: function (cfg) {
+    cfg = normCfg(cfg);   /* v2.9.1：同上 */
+    if (IS_FILE) return Promise.resolve({ ok: false, error: '浏览器直开模式受跨域限制，无法联网拉取模型列表。' });
+    if (!IS_NW) return httpApi('models', cfg);
+    return new Promise(function (res) {
+      var https, http, u;
+      try { https = ENV.req('https'); http = ENV.req('http'); } catch (e) { return res({ ok: false, error: '无法加载网络模块' }); }
+      var base = String(cfg.endpoint || '').replace(/\/chat\/completions.*$/, '').replace(/\/completions.*$/, '');
+      var mUrl = base + '/models';
+      try { u = new URL(mUrl); } catch (e) { return res({ ok: false, error: '无法从 Endpoint 推导出 /models 地址' }); }
+      var mod = u.protocol === 'https:' ? https : http;
+      var req = mod.request({
+        protocol: u.protocol, hostname: u.hostname,
+        port: u.port || (u.protocol === 'https:' ? 443 : 80),
+        path: (u.pathname || '/') + (u.search || ''), method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + cfg.apiKey }
+      }, function (r) {
+        var ch = [];
+        r.on('data', function (c) { ch.push(c); });
+        r.on('end', function () {
+          var txt = Buffer.concat(ch).toString('utf8');
+          if (r.statusCode >= 200 && r.statusCode < 300) {
+            try {
+              var j = JSON.parse(txt);
+              var list = (j.data || j.models || []).map(function (x) { return x.id || x.name || x.model; }).filter(Boolean);
+              res({ ok: true, models: list, url: mUrl });
+            } catch (e) { res({ ok: false, error: '返回不是 JSON：' + txt.slice(0, 200) }); }
+          } else {
+            res({ ok: false, status: r.statusCode, error: '该服务商可能不支持 /models（HTTP ' + r.statusCode + '），手动填模型名即可' });
+          }
+        });
+      });
+      req.on('error', function (e) { res({ ok: false, error: e.message }); });
+      req.setTimeout(20000, function () { try { req.abort(); } catch (e) { } res({ ok: false, error: '超时' }); });
+      req.end();
+    });
+  },
+  overview: function () {
+    if (IS_FILE) return Promise.resolve({ fileMode: true });
+    if (!IS_NW) return httpApi('overview');
+    return new Promise(function (res) {
+      var out = { worldbook: null, actors: null };
+      try {
+        var wb = ENV.path.join(ENV.dir, 'worldbook.json');
+        if (ENV.fs.existsSync(wb)) {
+          var w = JSON.parse(ENV.fs.readFileSync(wb, 'utf8'));
+          var merch = 0, lines = 0;
+          (w.npcs || []).forEach(function (n) {
+            if (n.tags && n.tags.indexOf('merchant') >= 0) merch++;
+            lines += (n.stats && n.stats.lines) || (n.dialogues || []).length || 0;
+          });
+          out.worldbook = {
+            npcs: (w.npcs || []).length, maps: Object.keys(w.maps || {}).length,
+            merchants: merch, lines: lines, version: w.version
+          };
+        }
+        var aa = ENV.path.join(ENV.dir, 'actors_ai.json');
+        if (ENV.fs.existsSync(aa)) {
+          var a = JSON.parse(ENV.fs.readFileSync(aa, 'utf8'));
+          out.actors = { count: Object.keys(a.actors || {}).length };
+        }
+      } catch (e) { out.error = e.message; }
+      res(out);
+    });
+  },
+  openFolder: function () {
+    if (IS_FILE) return Promise.resolve({ ok: false, error: '浏览器直开模式打不开文件夹' });
+    if (!IS_NW) return httpApi('folder');
+    return new Promise(function (res) {
+      try {
+        ENV.req('child_process').exec('explorer "' + ENV.dir.replace(/\//g, '\\') + '"');
+        res({ ok: true });
+      } catch (e) { res({ ok: false, error: e.message }); }
+    });
+  }
+};
+
+/* ---------------------------------------------------------------- 字段定义 */
+var DEFAULTS = {
+  endpoint: 'https://api.deepseek.com/chat/completions', apiKey: '', model: 'deepseek-chat',
+  temperature: 0.85, maxTokens: 1600, jsonMode: true, timeoutMs: 30000, retries: 1,
+  provider: 'openai', maxTurns: 8, worldDigestChars: 700, personaChars: 600,
+  loreChars: 2200, loreMaxEntries: 4,
+  sampleDialogueLines: 6, maxHistory: 10, keepOriginalText: true, swallowChoices: true,
+  maxInterceptsPerTrigger: 1, merchantMode: 'shop', allowFreeInput: true,
+  allNpcsTalkable: false,
+  allowSteal: true, allowRob: true, stealBaseChance: 0.45, stealLuckFactor: 0.01,
+  pocketMaxGoldMerchant: 80, pocketMaxGoldInn: 50, pocketMaxGoldResident: 25,
+  maxStealQty: 2, priceMinPercent: 50, priceMaxPercent: 150, robPenalty: 35,
+  stealFailPenalty: 8, repVarId: 0, enabledSwitchId: 0, robTroopId: 0,
+  watchdogFrames: 2400, showThinkingWindow: true, debug: false, language: 'auto',
+  stealValueBias: 0.8, stealValueHardness: 0.5, stealMinChance: 0.05, stealMaxChance: 0.9,
+  robBaseChance: 0.5, robPowerFactor: 0.012, robThreatBase: 12, robThreatDivisor: 900,
+  robMinChance: 0.1, robMaxChance: 0.95, robFailPenalty: 22,
+  repHatedBelow: -60, repBadBelow: -25, repGoodAt: 30, repHeroAt: 65,
+  repPriceHated: 1.5, repPriceBad: 1.3, repPriceGood: 0.88, repPriceHero: 0.75,
+  repRefuseTrade: true, hostileForgiveRep: 25,
+  insultPenalty: 6, praiseBonus: 5, insultWords: '', praiseWords: '', repRules: '[]',
+
+  /* ---- 交情（好感度）：每个角色独有 ---- */
+  affInitFromRep: 0.4, affInitMin: -40, affInitMax: 40, affPerTalk: 1,
+  insultAffPenalty: 10, praiseAffBonus: 8, stealAffPenalty: 20, restAffBonus: 3, investAffBonus: 6,
+  effHatedBelow: -60, effBadBelow: -25, effFriendlyAt: 30, effCloseAt: 65,
+  effPriceHated: 1.35, effPriceBad: 1.2, effPriceWarm: 0.9, effPriceClose: 0.8,
+
+  /* ---- 讲价 / 旅店 / 加盟投资 ---- */
+  haggleMinEffective: -30, haggleBaseChance: 0.5, haggleEffFactor: 0.004, haggleGreedFactor: 0.9,
+  haggleEffBonus: 5, haggleWindowSec: 180, haggleAngerPenalty: 4, haggleOverLimitPenalty: 7,
+  allowRest: true, innBasePrice: 0, investMinAmount: 100, investPeriodSec: 300, investRate: 0.08,
+  specialsExtra: true, maxSpecialChoices: 4
+};
+var SCHEMA = {
+  conn: [
+    { k: '@sim', l: '仿真模式', t: 'bool', hint: '开启后不联网，AI 回复由本地规则模拟，用来先验证插件链路是否正常。没有 API Key 时可以先这样试玩。' },
+    { k: 'endpoint', l: 'Endpoint', t: 'text' },
+    { k: 'apiKey', l: 'API Key', t: 'password', hint: '只存在本机文件里。留空则进入仿真模式（不联网，仅用于验证流程）' },
+    { k: 'model', l: '模型', t: 'text', list: 'modelList' }
+  ],
+  talk: [
+    { k: 'language', l: '游戏语言', t: 'enum',
+      hint: 'auto = 从游戏数据自动识别（推荐）。判定不准时可强制指定 —— 汉化版的人名常常还是日文，容易干扰自动判定。',
+      opts: [['auto', '自动识别'], ['zh-CN', '简体中文'], ['zh-TW', '繁體中文'], ['ja', '日本語'], ['en', 'English']] },
+    { k: 'maxTurns', l: '单次对话最多轮数', t: 'int', min: 1, max: 50, step: 1 },
+    { k: 'temperature', l: '温度', t: 'float', min: 0, max: 2, step: 0.05, hint: '越高越随性，0.8 左右比较自然' },
+    { k: 'maxTokens', l: '单次回复上限 token', t: 'int', min: 32, max: 8192, step: 32 },
+    { k: 'jsonMode', l: '要求模型输出 JSON', t: 'bool', hint: '建议开启，动作解析更稳；关掉后靠文本兜底解析' },
+    { k: 'allNpcsTalkable', l: '所有人都交给 AI 扮演', t: 'bool', hint: '默认关闭：只有你在「AI 角色」菜单里亲手打开的角色才由 AI 接管。打开后世界书里的所有 NPC 都能对话，不必逐个开；你亲手关掉的人不受影响。' },
+    { k: 'showThinkingWindow', l: '显示「对方正在思考」小窗', t: 'bool' },
+    { k: 'allowFreeInput', l: '允许玩家自由打字', t: 'bool', hint: '关闭后只能从 AI 给的选项里选' },
+    { k: 'keepOriginalText', l: '保留原作台词作为开场白', t: 'bool' },
+    { k: 'swallowChoices', l: '吞掉原作选项分支', t: 'bool', hint: '避免同一段对话被触发两次' },
+    { k: 'merchantMode', l: '商人接管方式', t: 'enum', opts: [['shop', '只在商店指令处接管（推荐）'], ['talk', '在搭话台词处接管'], ['off', '不接管商人']] },
+    { k: 'maxInterceptsPerTrigger', l: '一次搭话最多接管次数', t: 'int', min: 1, max: 5, step: 1 }
+  ],
+  play: [
+    { k: 'allowSteal', l: '允许偷窃', t: 'bool' },
+    { k: 'allowRob', l: '允许抢劫', t: 'bool', hint: '先过武力判定；得手会洗劫整个货架，名声大幅下降，商人从此不做你生意' },
+    { k: 'stealBaseChance', l: '偷窃基础成功率', t: 'float', min: 0, max: 1, step: 0.05, hint: '0.45 = 45%，再叠加玩家幸运加成；最便宜那件拿的就是这个值' },
+    { k: 'stealLuckFactor', l: '幸运加成系数', t: 'float', min: 0, max: 0.1, step: 0.005, hint: '幸运每点增加的额外成功率' },
+    { k: 'stealValueBias', l: '偷窃：按价值分配几率', t: 'float', min: -2, max: 2, step: 0.1, hint: '正数 = 便宜的先被顺走（0.8 推荐）；0 = 各件均等；负数 = 专挑贵的下手' },
+    { k: 'stealValueHardness', l: '偷窃：贵重物品难度加成', t: 'float', min: 0, max: 0.95, step: 0.05, hint: '0.5 = 货架上最贵那件成功率打对折；0 = 不分贵贱' },
+    { k: 'maxStealQty', l: '一次最多偷几件', t: 'int', min: 0, max: 10, step: 1 },
+    { k: 'pocketMaxGoldMerchant', l: '摸口袋上限：商人', t: 'int', min: 11, max: 500, step: 1, hint: '摸商人/有货架的人最多摸到多少金（下限自动取上限÷8，所以 80 → 10~79）' },
+    { k: 'pocketMaxGoldInn', l: '摸口袋上限：旅馆老板', t: 'int', min: 11, max: 500, step: 1, hint: '带 inn 标签的旅馆老板，柜台流水多，居中' },
+    { k: 'pocketMaxGoldResident', l: '摸口袋上限：普通居民', t: 'int', min: 11, max: 500, step: 1, hint: '其余所有人。路人身上本就只有零钱，别设太高' },
+    { k: 'stealFailPenalty', l: '偷窃被抓扣声望', t: 'int', min: 0, max: 100, step: 1, hint: '少量（默认 -8）' },
+    { k: 'robBaseChance', l: '抢劫基础成功率', t: 'float', min: 0, max: 1, step: 0.05, hint: '0.5 = 50%，再按「我方武力 - 对方武力」加减' },
+    { k: 'robPowerFactor', l: '抢劫：武力影响系数', t: 'float', min: 0, max: 0.1, step: 0.002, hint: '武力每领先 1 点加多少成功率' },
+    { k: 'robThreatBase', l: '抢劫：商家基础武力', t: 'int', min: 0, max: 200, step: 2 },
+    { k: 'robThreatDivisor', l: '抢劫：货架总值 → 武力', t: 'int', min: 100, max: 20000, step: 100, hint: '货架总价 ÷ 这个数，加到商家武力上（家底越厚越难抢）' },
+    { k: 'robPenalty', l: '抢劫得手扣声望', t: 'int', min: 0, max: 100, step: 1, hint: '大幅（默认 -35）' },
+    { k: 'robFailPenalty', l: '抢劫失手扣声望', t: 'int', min: 0, max: 100, step: 1 },
+    { k: 'priceMinPercent', l: '讲价下限（原价 %）', t: 'int', min: 10, max: 100, step: 5 },
+    { k: 'priceMaxPercent', l: '讲价上限（原价 %）', t: 'int', min: 100, max: 300, step: 5, hint: 'AI 报价会被夹在这个区间内' }
+  ],
+  rep: [
+    { k: 'repHatedBelow', l: '「过街老鼠」阈值（≤）', t: 'int', min: -100, max: 0, step: 5, hint: '名声掉到这个值以下，全镇商人不做你生意' },
+    { k: 'repBadBelow', l: '「声名狼藉」阈值（≤）', t: 'int', min: -100, max: 0, step: 5 },
+    { k: 'repGoodAt', l: '「小有名气」阈值（≥）', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'repHeroAt', l: '「名满一方」阈值（≥）', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'repPriceHated', l: '过街老鼠价格系数', t: 'float', min: 0.5, max: 3, step: 0.05, hint: '1.5 = 加价五成' },
+    { k: 'repPriceBad', l: '声名狼藉价格系数', t: 'float', min: 0.5, max: 3, step: 0.05 },
+    { k: 'repPriceGood', l: '小有名气价格系数', t: 'float', min: 0.3, max: 1.5, step: 0.02, hint: '0.88 = 主动给你抹一成二' },
+    { k: 'repPriceHero', l: '名满一方价格系数', t: 'float', min: 0.3, max: 1.5, step: 0.02 },
+    { k: 'repRefuseTrade', l: '名声太差时拒绝交易', t: 'bool', hint: '关掉后名声再差也只是加价' },
+    { k: 'hostileForgiveRep', l: '被抢过的商人原谅你所需声望', t: 'int', min: -100, max: 100, step: 5, hint: '声望涨回这个值，他重新跟你做生意' },
+    { k: 'insultPenalty', l: '辱骂扣声望', t: 'int', min: 0, max: 100, step: 1 },
+    { k: 'praiseBonus', l: '被夸奖涨声望', t: 'int', min: 0, max: 100, step: 1 },
+    { k: 'insultWords', l: '辱骂关键词', t: 'text', ph: '留空 = 用内置词表', hint: '用 | 或逗号分隔。留空则用内置表：傻子|蠢货|废物|滚…' },
+    { k: 'praiseWords', l: '夸奖关键词', t: 'text', ph: '留空 = 用内置词表', hint: '用 | 或逗号分隔。留空则用内置表：谢谢|厉害|好人…' },
+    { k: 'repRules', l: '任务完成自动加声望（规则表）', t: 'text', ph: '[{"switch":11,"delta":10,"note":"完成护送商队"}]',
+      hint: 'JSON 数组。做主线/支线任务时不用改游戏事件，挂在这里就行。' +
+        '开关：{"switch":编号,"delta":±值,"note":"说明"}；' +
+        '变量：{"variable":编号,"atLeast":3,"delta":8,"note":"说明"}（也有 atMost / equals）。同一个只触发一次，想每次触发加 "repeat":true' }
+  ],
+  aff: [
+    { k: 'affInitFromRep', l: '初始好感 = 全镇声望 × 系数', t: 'float', min: 0, max: 1, step: 0.05,
+      hint: '第一次和某人搭话时，他会按你当时的全镇名声给你一个起点好感（默认 0.4）。名声越好，起点越高。' },
+    { k: 'affInitMin', l: '初始好感下限', t: 'int', min: -100, max: 0, step: 5 },
+    { k: 'affInitMax', l: '初始好感上限', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'affPerTalk', l: '每聊一次涨多少好感', t: 'int', min: 0, max: 10, step: 1,
+      hint: '给得很少是有意的 —— 交情靠次数堆，「常来」本身就是好感' },
+    { k: 'praiseAffBonus', l: '被夸奖涨好感', t: 'int', min: 0, max: 50, step: 1 },
+    { k: 'insultAffPenalty', l: '被辱骂扣好感', t: 'int', min: 0, max: 50, step: 1,
+      hint: '比扣全镇声望更狠 —— 挨骂的那个人自己记得最牢' },
+    { k: 'stealAffPenalty', l: '偷他被抓扣好感', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'effHatedBelow', l: '「厌恶」阈值（≤）', t: 'int', min: -100, max: 0, step: 5,
+      hint: '合成印象（好感与名声加权后的整体感觉）掉到这里，他不做你生意' },
+    { k: 'effBadBelow', l: '「冷淡」阈值（≤）', t: 'int', min: -100, max: 0, step: 5 },
+    { k: 'effFriendlyAt', l: '「熟络」阈值（≥）', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'effCloseAt', l: '「知己」阈值（≥）', t: 'int', min: 0, max: 100, step: 5 },
+    { k: 'effPriceHated', l: '厌恶价格系数', t: 'float', min: 0.5, max: 3, step: 0.05 },
+    { k: 'effPriceBad', l: '冷淡价格系数', t: 'float', min: 0.5, max: 3, step: 0.05 },
+    { k: 'effPriceWarm', l: '熟络价格系数', t: 'float', min: 0.3, max: 1.5, step: 0.02 },
+    { k: 'effPriceClose', l: '知己价格系数', t: 'float', min: 0.3, max: 1.5, step: 0.02 }
+  ],
+  hg: [
+    { k: 'haggleMinEffective', l: '不给讲价的门槛（印象 <）', t: 'int', min: -100, max: 100, step: 5,
+      hint: '合成印象低于这个值就连谈都不谈。「名声好感低不许讲价」就是这一条' },
+    { k: 'haggleBaseChance', l: '讲价基础成功率', t: 'float', min: 0, max: 1, step: 0.05 },
+    { k: 'haggleEffFactor', l: '印象对成功率的影响', t: 'float', min: 0, max: 0.02, step: 0.001,
+      hint: '印象每高 1 点加多少成功率（默认 0.004 → 印象满值 ±40%）' },
+    { k: 'haggleGreedFactor', l: '要价越狠越难谈', t: 'float', min: 0, max: 2, step: 0.05,
+      hint: '张嘴就要五折的，成功率要打掉多少（默认 0.9）' },
+    { k: 'haggleEffBonus', l: '印象好能多谈几次', t: 'int', min: 0, max: 15, step: 1,
+      hint: '次数上限 = 性格基础值 + 这一项 × 印象比例（默认 5）' },
+    { k: 'haggleWindowSec', l: '讲价次数重置窗口（秒）', t: 'int', min: 10, max: 3600, step: 10,
+      hint: '这段时间内次数耗尽就不再谈；过了自动重置（默认 180 秒）' },
+    { k: 'haggleAngerPenalty', l: '讲价失败扣好感', t: 'int', min: 0, max: 50, step: 1,
+      hint: '还要乘以性格的脾气系数 —— 暴躁的人扣得更多' },
+    { k: 'haggleOverLimitPenalty', l: '砍过头（超出次数）扣好感', t: 'int', min: 0, max: 50, step: 1 },
+    { k: 'allowRest', l: '允许旅店住宿', t: 'bool', hint: '旅店/客栈老板可以用 rest 动作收钱让全队回满 HP/MP' },
+    { k: 'innBasePrice', l: '住宿基础价', t: 'int', min: 0, max: 100000, step: 10,
+      hint: '0 = 由 AI 按世界观自行报价；住宿费同样会被讲价影响' },
+    { k: 'investMinAmount', l: '加盟最低金额', t: 'int', min: 0, max: 100000, step: 50 },
+    { k: 'investPeriodSec', l: '分红周期（秒）', t: 'int', min: 30, max: 7200, step: 30,
+      hint: '按游戏运行时长计。关掉游戏不计时，回来接着算' },
+    { k: 'investRate', l: '每周期分红比例', t: 'float', min: 0.01, max: 1, step: 0.01,
+      hint: '0.08 = 每个周期按投入额分 8%；还要乘「他和你关系的印象系数」（0.5~1.6 倍）' },
+    { k: 'specialsExtra', l: '按身份追加特色服务', t: 'bool',
+      hint: '开着：铁匠/教会/学者/卫兵这类身份，不管铺子开在哪都会那手活。关掉就只按「场合」给服务' },
+    { k: 'maxSpecialChoices', l: '一次最多摆几个特色服务', t: 'int', min: 0, max: 8, step: 1,
+      hint: '摆在对话选项里的条数。太多会挤爆选项框（默认 4）。想给某个人单独加服务，改 config.json 的 specials' }
+  ],
+  adv: [
+    { k: 'timeoutMs', l: '请求超时（毫秒）', t: 'int', min: 1000, max: 300000, step: 1000 },
+    { k: 'retries', l: '失败重试次数', t: 'int', min: 0, max: 5, step: 1 },
+    { k: 'watchdogFrames', l: '看门狗帧数', t: 'int', min: 300, max: 100000, step: 300, hint: '超过这么多帧没回应就自动放行，防止卡死（60 帧 ≈ 1 秒）' },
+    { k: 'maxHistory', l: '带入上下文的历史消息数', t: 'int', min: 0, max: 40, step: 2 },
+    { k: 'worldDigestChars', l: '世界书摘要字数上限', t: 'int', min: 0, max: 4000, step: 100 },
+    { k: 'personaChars', l: '角色人设字数上限', t: 'int', min: 0, max: 4000, step: 100 },
+    { k: 'loreChars', l: '世界设定字数上限', t: 'int', min: 0, max: 6000, step: 100 },
+    { k: 'loreMaxEntries', l: '世界设定最多注入几条', t: 'int', min: 0, max: 12, step: 1 },
+    { k: 'sampleDialogueLines', l: '参考台词条数', t: 'int', min: 0, max: 30, step: 1 },
+    { k: 'repVarId', l: '声望变量 ID', t: 'int', min: 0, max: 9999, step: 1, hint: '0 = 只存插件内部状态，不写游戏变量' },
+    { k: 'enabledSwitchId', l: '总开关开关 ID', t: 'int', min: 0, max: 9999, step: 1 },
+    { k: 'robTroopId', l: '抢劫触发战斗的敌群 ID', t: 'int', min: 0, max: 9999, step: 1, hint: '0 = 不触发战斗' },
+    { k: 'debug', l: '调试日志', t: 'bool', hint: '开启后控制台会打印详细流程' }
+  ]
+};
+
+/* ---------------------------------------------------------------- 预设服务商 */
+var PRESETS = {
+  deepseek: { label: 'DeepSeek', endpoint: 'https://api.deepseek.com/chat/completions', models: ['deepseek-chat', 'deepseek-reasoner'] },
+  openai: { label: 'OpenAI', endpoint: 'https://api.openai.com/v1/chat/completions', models: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini'] },
+  qwen: { label: '通义千问', endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', models: ['qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen-long'] },
+  glm: { label: '智谱 GLM', endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions', models: ['glm-4-flash', 'glm-4-plus', 'glm-4-air'] },
+  moonshot: { label: '月之暗面', endpoint: 'https://api.moonshot.cn/v1/chat/completions', models: ['moonshot-v1-8k', 'moonshot-v1-32k'] },
+  siliconflow: { label: '硅基流动', endpoint: 'https://api.siliconflow.cn/v1/chat/completions', models: ['Qwen/Qwen2.5-7B-Instruct', 'deepseek-ai/DeepSeek-V3'] },
+  ollama: { label: '本地 Ollama', endpoint: 'http://localhost:11434/v1/chat/completions', models: ['qwen2.5:7b', 'llama3.1:8b'] },
+  custom: { label: '自定义', endpoint: '', models: [] }
+};
+
+/* ---------------------------------------------------------------- 状态 */
+var RAW = {};      // 磁盘上的原始对象（保留未知键）
+var CUR = {};      // 当前表单值
+var LAST_PRESET = '';
+
+/* ---------------------------------------------------------------- 渲染 */
+function el(tag, cls, html) {
+  var d = document.createElement(tag);
+  if (cls) d.className = cls;
+  if (html != null) d.innerHTML = html;
+  return d;
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function buildField(f) {
+  var v = (CUR[f.k] !== undefined) ? CUR[f.k] : DEFAULTS[f.k];
+  var row = el('div', 'row');
+  var lb = el('label', null, esc(f.l));
+  row.appendChild(lb);
+  var ctl = el('div', 'ctl');
+  var input;
+
+  if (f.t === 'bool') {
+    var sw = el('label', 'sw');
+    input = document.createElement('input');
+    input.type = 'checkbox'; input.checked = !!v; input.dataset.k = f.k;
+    sw.appendChild(input);
+    sw.appendChild(el('span', 'sl'));
+    ctl.appendChild(sw);
+  } else if (f.t === 'enum') {
+    input = document.createElement('select'); input.dataset.k = f.k;
+    f.opts.forEach(function (o) {
+      var op = document.createElement('option');
+      op.value = o[0]; op.textContent = o[1];
+      if (String(v) === o[0]) op.selected = true;
+      input.appendChild(op);
+    });
+    ctl.appendChild(input);
+  } else if (f.t === 'password') {
+    var wrap = el('div', 'pw-wrap');
+    input = document.createElement('input');
+    input.type = 'password'; input.dataset.k = f.k; input.value = v == null ? '' : v;
+    input.placeholder = f.ph || '';
+    input.autocomplete = 'off'; input.spellcheck = false;
+    var eye = el('button', 'pw-eye', '👁');
+    eye.type = 'button';
+    eye.onclick = function () { input.type = input.type === 'password' ? 'text' : 'password'; };
+    wrap.appendChild(input); wrap.appendChild(eye);
+    ctl.appendChild(wrap);
+  } else {
+    input = document.createElement('input');
+    input.type = (f.t === 'text') ? 'text' : 'number';
+    if (f.t !== 'text') {
+      if (f.min != null) input.min = f.min;
+      if (f.max != null) input.max = f.max;
+      if (f.step != null) input.step = f.step;
+    }
+    // 文本字段拿到的可能是数组/对象（比如 repRules 在 config.json 里是 JSON 数组），
+    // 直接塞进 input 会变成 [object Object]，先序列化回字符串。
+    var sv = v;
+    if (f.t === 'text' && sv !== null && typeof sv === 'object') {
+      try { sv = JSON.stringify(sv); } catch (e) { sv = ''; }
+    }
+    input.dataset.k = f.k; input.value = sv == null ? '' : sv;
+    if (f.ph) input.placeholder = f.ph;
+    if (f.list) input.setAttribute('list', f.list);
+    ctl.appendChild(input);
+  }
+  if (f.hint) ctl.appendChild(el('div', 'hint', esc(f.hint)));
+  row.appendChild(ctl);
+  return row;
+}
+
+function renderGroup(id, fields) {
+  var box = document.getElementById(id);
+  box.innerHTML = '';
+  fields.forEach(function (f) { box.appendChild(buildField(f)); });
+}
+
+function renderProviders() {
+  var box = document.getElementById('providers');
+  box.innerHTML = '';
+  Object.keys(PRESETS).forEach(function (key) {
+    var p = PRESETS[key];
+    var b = el('div', 'prov', esc(p.label));
+    if (LAST_PRESET === key) b.classList.add('active');
+    b.onclick = function () {
+      LAST_PRESET = key;
+      var ep = document.querySelector('[data-k=endpoint]');
+      if (ep && p.endpoint) { ep.value = p.endpoint; }
+      var mdl = document.querySelector('[data-k=model]');
+      if (mdl && p.models.length && !p.models.some(function (m) { return m === mdl.value; })) mdl.value = p.models[0];
+      renderProviderActive();
+      syncModelList();
+    };
+    b.dataset.preset = key;
+    box.appendChild(b);
+  });
+}
+function renderProviderActive() {
+  var box = document.getElementById('providers');
+  Array.prototype.forEach.call(box.children, function (c) {
+    c.classList.toggle('active', c.dataset.preset === LAST_PRESET);
+  });
+}
+function syncModelList() {
+  var dl = document.getElementById('modelList');
+  if (!dl) {
+    dl = document.createElement('datalist'); dl.id = 'modelList';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = '';
+  var set = [];
+  var p = PRESETS[LAST_PRESET];
+  if (p) set = set.concat(p.models);
+  Object.keys(PRESETS).forEach(function (k) { set = set.concat(PRESETS[k].models || []); });
+  var seen = {};
+  set.forEach(function (m) {
+    if (seen[m]) return; seen[m] = 1;
+    var o = document.createElement('option'); o.value = m; dl.appendChild(o);
+  });
+}
+
+/* ---------------------------------------------------------------- 读写表单 */
+function collect() {
+  var out = {};
+  Object.keys(SCHEMA).forEach(function (g) {
+    SCHEMA[g].forEach(function (f) {
+      var node = document.querySelector('[data-k="' + f.k + '"]');
+      if (!node) return;
+      if (f.t === 'bool') out[f.k] = !!node.checked;
+      else if (f.t === 'enum') out[f.k] = node.value;
+      else if (f.t === 'int') { var n = parseInt(node.value, 10); out[f.k] = isNaN(n) ? DEFAULTS[f.k] : n; }
+      else if (f.t === 'float') { var x = parseFloat(node.value); out[f.k] = isNaN(x) ? DEFAULTS[f.k] : x; }
+      else out[f.k] = node.value;
+    });
+  });
+  var simNode = document.querySelector('[data-k="@sim"]');
+  out.provider = (simNode && simNode.checked) ? 'mock' : 'openai';
+  delete out['@sim'];
+  return out;
+}
+function applyToForm(cfg) {
+  CUR = {};
+  Object.keys(DEFAULTS).forEach(function (k) { CUR[k] = (cfg[k] !== undefined) ? cfg[k] : DEFAULTS[k]; });
+  CUR['@sim'] = (cfg.provider === 'mock');
+  renderGroup('connFields', SCHEMA.conn);
+  renderGroup('talkFields', SCHEMA.talk);
+  renderGroup('playFields', SCHEMA.play);
+  renderGroup('repFields', SCHEMA.rep);
+  renderGroup('affFields', SCHEMA.aff);
+  renderGroup('hgFields', SCHEMA.hg);
+  renderGroup('advFields', SCHEMA.adv);
+  syncModelList();
+  updateSimUI();
+  // 猜测当前 endpoint 属于哪个预设
+  LAST_PRESET = 'custom';
+  Object.keys(PRESETS).forEach(function (k) {
+    if (PRESETS[k].endpoint && PRESETS[k].endpoint === CUR.endpoint) LAST_PRESET = k;
+  });
+  renderProviders();
+  renderProviderActive();
+}
+
+function updateSimUI() {
+  var node = document.querySelector('[data-k="@sim"]');
+  var sim = node ? node.checked : false;
+  var b = document.getElementById('badgeState');
+  if (!b) return;
+  var keyNode = document.querySelector('[data-k=apiKey]');
+  if (sim) { b.className = 'badge sim'; b.textContent = '仿真模式'; }
+  else if (keyNode && keyNode.value) { b.className = 'badge on'; b.textContent = '已配置'; }
+  else { b.className = 'badge err'; b.textContent = '缺少 API Key'; }
+}
+
+/* ---------------------------------------------------------------- 概览 */
+function renderStats(ov) {
+  var box = document.getElementById('stats');
+  box.innerHTML = '';
+  var items = [];
+  if (ov && ov.worldbook) {
+    items.push([ov.worldbook.npcs, 'NPC 条目']);
+    items.push([ov.worldbook.maps, '地图']);
+    items.push([ov.worldbook.merchants, '可识别商人']);
+    items.push([ov.worldbook.lines, '原作台词行']);
+  } else {
+    items.push(['—', '世界书缺失']);
+  }
+  if (ov && ov.actors) items.push([ov.actors.count, '角色档案']);
+  // 面板是从游戏里打开的，顺手把当前全镇声望读出来 —— 玩家一眼能看到自己什么名声
+  try {
+    var host = gameHost();
+    var G = host && host.RM_AI_NPC;
+    if (G && typeof G.reputation === 'function') {
+      var tier = (typeof G.reputationTier === 'function') ? G.reputationTier() : null;
+      items.push([G.reputation() + (tier && tier.label ? ' · ' + tier.label : ''), '当前全镇声望']);
+    }
+  } catch (e) { }
+  items.forEach(function (it) {
+    var s = el('div', 'stat');
+    s.appendChild(el('div', 'n', esc(it[0])));
+    s.appendChild(el('div', 't', esc(it[1])));
+    box.appendChild(s);
+  });
+}
+
+/* ---------------------------------------------------------------- 提示 */
+function showResult(kind, text) {
+  var r = document.getElementById('result');
+  r.className = kind; r.textContent = text;
+}
+function clearResult() { document.getElementById('result').className = ''; }
+
+/* ---------------------------------------------------------------- 启动 */
+function doImport() {
+  BE.importConfig().then(function (r) {
+    RAW = r.raw || {};
+    applyToForm(r.config || {});
+    document.getElementById('badgeSource').textContent = r.path || 'config.json';
+    updateSimUI();
+    showResult('ok', '✔ 已导入 ' + (r.path || 'config.json') + '。改完点下面的「保存配置」。');
+  }).catch(function (e) {
+    var m = String((e && e.message) || e);
+    if (/abort|cancel|取消/i.test(m)) return;
+    showResult('err', '导入失败：' + m);
+  });
+}
+
+function boot() {
+  document.getElementById('modeLabel').textContent = IS_NW
+    ? '游戏内窗口模式（直接读写文件）'
+    : (IS_FILE ? '浏览器直开模式（手动导入 / 保存）' : '浏览器模式（经本地服务读写）');
+  // 非 NW 模式把完整 href 显示出来：万一打开的是错路径，一眼就能看出来
+  document.getElementById('envTag').textContent = IS_NW
+    ? ENV.dir
+    : String(location.href || location.origin || '');
+
+  // 「路径明明对，却没有 Node 权限」—— 说明这个窗口不是游戏本体给的。
+  // 之前遇到的现象就是新窗口指到了不存在的文件，用户只看到「找不到文件」。
+  if (IS_FILE && /\/ai_npc\//i.test(String(location.pathname || ''))) {
+    document.getElementById('topWarn').appendChild(el('div', 'warnbar',
+      '⚠ 页面确实在游戏目录里，但当前窗口没有文件读写权限（不是游戏内开出来的窗口）。' +
+      '请回游戏里按 F10，或双击游戏根目录的「打开AI配置面板.bat」。'));
+  }
+
+  if (IS_FILE) {
+    var bar = el('div', 'warnbar',
+      '⚠️ 这是「浏览器直接打开」模式，网页不能自动读写游戏文件。用法：① 点右边按钮选中 ' +
+      '<游戏>/www/ai_npc/config.json；② 改完点下面的「保存配置」，会写回同一个文件' +
+      '（老浏览器会改为下载，需要你手动覆盖回 www/ai_npc/）。' +
+      '想要一键读写 + 联网测试，请用游戏内面板（F10）或「打开配置面板.bat」。');
+    var bi = document.createElement('button');
+    bi.className = 'btn'; bi.textContent = '导入 config.json';
+    bi.style.cssText = 'margin-top:10px;';
+    bi.onclick = doImport;
+    bar.appendChild(document.createElement('br'));
+    bar.appendChild(bi);
+    document.getElementById('topWarn').appendChild(bar);
+
+    // file:// 下跨域请求会被浏览器拦掉，联网相关按钮直接禁用，别让用户白点
+    ['btnTest', 'btnModels'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      b.disabled = true;
+      b.title = '浏览器直开模式受跨域限制，无法联网。请用游戏内面板（F10）或本地服务';
+    });
+  }
+
+  if (ENV.mode === 'unknown') {
+    document.getElementById('topWarn').appendChild(el('div', 'warnbar',
+      '⚠ 找不到 config.json 所在目录，也无法连接本地服务。请通过游戏内的「AI 角色 → 打开配置面板」进入，或双击「打开配置面板.bat」启动本地服务后访问。'));
+  }
+
+  BE.overview().then(renderStats).catch(function () { renderStats(null); });
+
+  BE.loadConfig().then(function (r) {
+    if (!r.ok) {
+      document.getElementById('topWarn').appendChild(el('div', 'warnbar', '⚠ 读取配置失败：' + esc(r.error)));
+      applyToForm(DEFAULTS);
+    } else {
+      RAW = r.raw || {};
+      applyToForm(r.config || {});
+    }
+    document.getElementById('badgeSource').textContent = IS_NW ? 'config.json' : (r.path || 'config.json');
+    updateSimUI();
+    if (r.needImport) {
+      document.getElementById('topWarn').appendChild(el('div', 'warnbar',
+        'ℹ 还没导入 config.json，下面显示的是默认值。点上面「导入 config.json」把它们换成你游戏里的实际配置。'));
+    } else if (r.existed === false) {
+      document.getElementById('topWarn').appendChild(el('div', 'warnbar', 'ℹ 还没有 config.json，下面是默认值，填好 API Key 后点保存即可生成。'));
+    }
+  }).catch(function (e) {
+    document.getElementById('topWarn').appendChild(el('div', 'warnbar', '⚠ 读取配置异常：' + esc(e.message)));
+    applyToForm(DEFAULTS);
+  });
+}
+
+/* ---------------------------------------------------------------- 事件绑定 */
+document.addEventListener('DOMContentLoaded', function () {
+  boot();
+
+  document.body.addEventListener('input', function (e) {
+    if (e.target.dataset && e.target.dataset.k === 'apiKey') updateSimUI();
+  });
+  document.body.addEventListener('change', function (e) {
+    if (e.target.dataset && e.target.dataset.k === '@sim') {
+      updateSimUI();
+      clearResult();   // 模式变了，上一条测试提示就过期了
+    }
+  });
+
+  document.getElementById('btnTest').onclick = function () {
+    var btn = this; btn.disabled = true;
+    var c = collect();
+    if (c.provider === 'mock') { btn.disabled = false; return showResult('busy', '当前是仿真模式，不会联网。取消勾选「仿真模式」并填入 API Key 后再测。'); }
+    if (!c.apiKey) { btn.disabled = false; return showResult('err', '还没填 API Key。'); }
+    showResult('busy', '正在请求 ' + c.endpoint + ' …');
+    BE.test(c).then(function (r) {
+      btn.disabled = false;
+      if (r.ok) showResult('ok', '✔ 连通正常　耗时 ' + r.ms + ' ms　HTTP ' + r.status + '\n模型回复：' + r.reply);
+      else showResult('err', '✘ 失败' + (r.status ? '（HTTP ' + r.status + '）' : '') + '：' + r.error +
+        '\n\n常见原因：API Key 错 / 余额不足 / 模型名不存在 / Endpoint 写错 / 网络需要代理');
+      updateSimUI();
+    }).catch(function (e) { btn.disabled = false; showResult('err', '异常：' + e.message); });
+  };
+
+  document.getElementById('btnModels').onclick = function () {
+    var btn = this; btn.disabled = true;
+    var c = collect();
+    if (!c.apiKey) { btn.disabled = false; return showResult('err', '拉取模型列表需要 API Key。'); }
+    showResult('busy', '正在拉取…');
+    BE.models(c).then(function (r) {
+      btn.disabled = false;
+      if (r.ok && r.models.length) {
+        var dl = document.getElementById('modelList');
+        dl.innerHTML = '';
+        r.models.forEach(function (m) { var o = document.createElement('option'); o.value = m; dl.appendChild(o); });
+        showResult('ok', '✔ 拿到 ' + r.models.length + ' 个模型，已加入模型输入框的下拉候选。\n前几个：' + r.models.slice(0, 8).join(', '));
+      } else if (r.ok) { showResult('err', '服务商返回了空列表。'); }
+      else { showResult('err', '✘ ' + r.error); }
+    }).catch(function (e) { btn.disabled = false; showResult('err', '异常：' + e.message); });
+  };
+
+  document.getElementById('btnSave').onclick = function () {
+    var btn = this; btn.disabled = true;
+    var msg = document.getElementById('saveMsg');
+    msg.className = ''; msg.textContent = '保存中…';
+    var values = collect();
+    if (values.provider !== 'mock' && !values.apiKey) {
+      if (!confirm('API Key 是空的，游戏会进入仿真模式（不会真正联网）。仍要保存吗？')) {
+        btn.disabled = false; msg.textContent = ''; return;
+      }
+    }
+    if (values.priceMinPercent > values.priceMaxPercent) {
+      btn.disabled = false; msg.className = 'err';
+      msg.textContent = '讲价下限不能大于上限。';
+      return;
+    }
+    BE.saveConfig(RAW, values).then(function (r) {
+      btn.disabled = false;
+      if (r.ok) {
+        msg.className = 'ok';
+        msg.textContent = r.reloaded ? '✔ 已保存，游戏已即时生效'
+          : (r.downloaded ? '✔ 已下载 config.json —— 请把它覆盖回 www/ai_npc/'
+            : (IS_FILE ? '✔ 已写回 ' + (r.path || 'config.json') : '✔ 已保存（游戏下次搭话时自动读取）'));
+        var b = document.getElementById('badgeState');
+        if (values.provider === 'mock') { b.className = 'badge sim'; b.textContent = '仿真模式'; }
+        else { b.className = 'badge on'; b.textContent = '已配置'; }
+        setTimeout(function () { msg.textContent = ''; }, 6000);
+      } else {
+        msg.className = 'err'; msg.textContent = '✘ 保存失败：' + r.error;
+      }
+    }).catch(function (e) { btn.disabled = false; msg.className = 'err'; msg.textContent = '✘ ' + e.message; });
+  };
+
+  document.getElementById('btnReload').onclick = function () {
+    var msg = document.getElementById('saveMsg');
+    msg.className = ''; msg.textContent = '重新载入中…';
+    BE.loadConfig().then(function (r) {
+      if (r.ok) { RAW = r.raw || {}; applyToForm(r.config || {}); msg.textContent = '已重新载入。'; }
+      else msg.className = 'err', msg.textContent = r.error;
+      setTimeout(function () { msg.textContent = ''; }, 3000);
+    });
+  };
+
+  document.getElementById('btnFolder').onclick = function () {
+    BE.openFolder().then(function (r) {
+      if (!r.ok) alert('打不开文件夹：' + (r.error || ''));
+    });
+  };
+});
+</script>
+</body>
+</html>
