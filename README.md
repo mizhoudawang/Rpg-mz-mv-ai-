@@ -18,8 +18,38 @@
 
 ---
 
+## 下载
+
+**普通玩家 —— 点这里直接下载（推荐）：**
+
+> ### ⬇️ [点此下载 RM_AI_NPC v2.10.5](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip)
+
+下载到一个 zip，解压到任意位置（桌面就行），然后按下面的 [30 秒上手](#30-秒上手) 走。
+**不需要注册 GitHub 账号，不需要装 Git，不需要装 Node.js。**
+
+<details>
+<summary>其它下载方式（点开）</summary>
+
+| 方式 | 地址 | 说明 |
+| --- | --- | --- |
+| **最新版 zip** | [main.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/heads/main.zip) | 永远是最新代码，但可能含未发布的改动 |
+| **指定版本 zip** | [v2.10.5.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip) | 固定在某个版本，推荐 |
+| **Git 克隆** | `git clone https://github.com/mizhoudawang/Rpg-mz-mv-ai-.git` | 想跟更新时用；之后 `git pull` 即可 |
+| **网页单个文件** | 仓库页面 → 点进文件 → 右上角 `Raw` / `Download` | 只想拿某一个文件时用 |
+| **Releases 页** | [Releases](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases) | 历史版本归档 |
+
+> **下载到的是什么？** GitHub 自动打包的源码 zip，文件名形如 `Rpg-mz-mv-ai-2.10.5.zip`，
+> 解压后里面是一层同名文件夹。**一键安装.bat 就在最外层**，不用再往里翻。
+>
+> ⚠️ 解压后请**保持文件在一起**再拖游戏文件夹 —— `一键安装.bat` 和 `_oneclick.ps1` 必须同目录。
+
+</details>
+
+---
+
 ## 目录
 
+- [下载](#下载)
 - [这是什么](#这是什么)
 - [30 秒上手](#30-秒上手)
 - [它是怎么工作的](#它是怎么工作的)
@@ -51,7 +81,7 @@
 ## 30 秒上手
 
 ```
-1. 解压本仓库到任意位置（桌面就行，不用放进游戏目录）
+1. 下载并解压（见上面的「下载」一节，桌面就行，不用放进游戏目录）
 2. 把你的【游戏文件夹】拖到「一键安装.bat」图标上松手
 3. 启动游戏 → 任意界面按 F10 → 填 API Key
 4. 菜单「AI 角色」→ 生成角色人设 / 生成世界设定 → 等它跑完
@@ -368,6 +398,15 @@ Rpg-mz-mv-ai-/
 ---
 
 ## 常见问题
+
+**别人怎么下载使用？**
+把仓库地址发给他即可 —— 打开 [仓库首页](https://github.com/mizhoudawang/Rpg-mz-mv-ai-)，点绿色的 `Code` → `Download ZIP`，或者直接用 [这个直链](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip)。不需要 GitHub 账号、不需要 Git、不需要 Node.js。
+
+**下载下来的文件夹叫什么？一键安装.bat 在哪？**
+GitHub 打包的 zip 解压后是 `Rpg-mz-mv-ai-2.10.5`（或 `Rpg-mz-mv-ai--main`）这样一层文件夹，`一键安装.bat` 就在**它最外层**，不用再往里翻。请**整个文件夹保持完整**再拖游戏目录进去。
+
+**下载的 zip 和 Releases 里的有什么区别？**
+GitHub 的 `Download ZIP` 是**源码快照**，不含构建产物、也没有压缩包附加。本项目是纯 JS 插件、无需构建，两者内容实质相同。唯一的差别是源码 zip 里会多出 `.gitignore` / `.gitattributes` 这类仓库管理文件，**它们不影响安装和使用**。
 
 **插件到底加载没有？**
 打开 `<游戏>/www/ai_npc/startup.log`（每次启动重写，第一手证据）。里面能看到：插件有没有加载、菜单项有没有注册、配置读没读到、有没有 JS 报错。
