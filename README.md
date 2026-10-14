@@ -1,9 +1,10 @@
 # Rpg-mz-mv-ai-
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.10.5-blue.svg)](docs/CHANGELOG.md)
+[![Release](https://img.shields.io/github/v/release/mizhoudawang/Rpg-mz-mv-ai-?label=release&color=blue)](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mizhoudawang/Rpg-mz-mv-ai-/total?label=downloads&color=green)](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases)
 [![RPG Maker](https://img.shields.io/badge/RPG%20Maker-MV%20%7C%20MZ-green.svg)](#这是什么)
-[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#安装)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#下载)
 
 **RM_AI_NPC —— 给 RPG Maker MV / MZ 游戏装一层「AI 扮演 NPC」。**
 
@@ -20,9 +21,12 @@
 
 ## 下载
 
-**普通玩家 —— 点这里直接下载（推荐）：**
+**普通玩家 —— 点这里（推荐）：**
 
-> ### ⬇️ [点此下载 RM_AI_NPC v2.10.5](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip)
+> ### ⬇️ [RM_AI_NPC v2.10.5 下载页](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases/latest)
+>
+> 进页面后在 **Assets** 里点 `RM_AI_NPC-v2.10.5.zip` 下载 —— 那是**干净的玩家成品包**，
+> 已剔除开发文件，解压即用。
 
 下载到一个 zip，解压到任意位置（桌面就行），然后按下面的 [30 秒上手](#30-秒上手) 走。
 **不需要注册 GitHub 账号，不需要装 Git，不需要装 Node.js。**
@@ -32,16 +36,20 @@
 
 | 方式 | 地址 | 说明 |
 | --- | --- | --- |
-| **最新版 zip** | [main.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/heads/main.zip) | 永远是最新代码，但可能含未发布的改动 |
-| **指定版本 zip** | [v2.10.5.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip) | 固定在某个版本，推荐 |
+| **成品包（推荐）** | [Releases 页](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases) | 干净的玩家包，已剔除开发文件；历史版本也在这里 |
+| **成品包直链** | [RM_AI_NPC-v2.10.5.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases/download/v2.10.5/RM_AI_NPC-v2.10.5.zip) | 不想进页面就用这个，点一下直接开始下载 |
+| **源码 zip（指定版本）** | [v2.10.5.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/tags/v2.10.5.zip) | 仓库快照，会多出 `.gitignore` 等文件，不影响使用 |
+| **源码 zip（最新）** | [main.zip](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/archive/refs/heads/main.zip) | 永远是最新代码，但可能含未发布的改动 |
 | **Git 克隆** | `git clone https://github.com/mizhoudawang/Rpg-mz-mv-ai-.git` | 想跟更新时用；之后 `git pull` 即可 |
-| **网页单个文件** | 仓库页面 → 点进文件 → 右上角 `Raw` / `Download` | 只想拿某一个文件时用 |
-| **Releases 页** | [Releases](https://github.com/mizhoudawang/Rpg-mz-mv-ai-/releases) | 历史版本归档 |
+| **单个文件** | 仓库页面 → 点进文件 → 右上角 `Raw` / `Download` | 只想拿某一个文件时用 |
 
-> **下载到的是什么？** GitHub 自动打包的源码 zip，文件名形如 `Rpg-mz-mv-ai-2.10.5.zip`，
-> 解压后里面是一层同名文件夹。**一键安装.bat 就在最外层**，不用再往里翻。
+> **成品包和源码 zip 有什么区别？**
+> 内容实质相同（本项目是纯 JS 插件、**无需构建**）。差别只在成品包**剔除了** `.git` / `.gitignore` /
+> `.gitattributes` 这类开发文件，对玩家更干净。两者都能正常安装。
+
+> **解压后是什么样？** 里面是一层同名文件夹，**`一键安装.bat` 就在最外层**，不用再往里翻。
 >
-> ⚠️ 解压后请**保持文件在一起**再拖游戏文件夹 —— `一键安装.bat` 和 `_oneclick.ps1` 必须同目录。
+> ⚠️ 请**保持整个文件夹完整**再拖游戏目录 —— `一键安装.bat` 和 `_oneclick.ps1` 必须同目录。
 
 </details>
 
