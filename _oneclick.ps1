@@ -381,7 +381,7 @@ $toolDst = Join-Path $AI 'tools'
 $toolCount = 0
 foreach ($f in @('scan_game.js', 'extract_lore.js', 'corpus_digest.js', 'ai_schema.js',
                  'persona_core.js', 'gen_bible.js', 'build_persona_input.js',
-                 'gen_topics.js', 'build_lorebook_input.js', 'place_names.js')) {
+                 'gen_topics.js', 'build_lorebook_input.js', 'place_names.js', 'l10n.js')) {
     $s = Join-Path $PKG ("tools\" + $f)
     if (Test-Path -LiteralPath $s) { Copy-Item -LiteralPath $s -Destination (Join-Path $toolDst $f) -Force; $toolCount++ }
 }

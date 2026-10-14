@@ -1,5 +1,10 @@
 # Rpg-mz-mv-ai-
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.10.5-blue.svg)](docs/CHANGELOG.md)
+[![RPG Maker](https://img.shields.io/badge/RPG%20Maker-MV%20%7C%20MZ-green.svg)](#这是什么)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](#安装)
+
 **RM_AI_NPC —— 给 RPG Maker MV / MZ 游戏装一层「AI 扮演 NPC」。**
 
 装完之后，你在游戏里可以直接打字和 NPC 自由对话、讲价、偷窃、抢劫、切磋、送礼、住宿、加盟分红……
@@ -8,6 +13,7 @@
 - 引擎：RPG Maker **MV** / **MZ**（RPG Maker VX / VX Ace / XP 不支持）
 - 当前版本：**v2.10.5**
 - 平台：Windows 为主（游戏内功能跨平台，一键安装器仅 Windows）
+- 许可证：**MIT**
 - 不需要装 Node.js（一键安装器路线）；填写 API Key 后可**在游戏内**一键生成世界书 / 世界设定 / 角色设定
 
 ---
@@ -311,6 +317,7 @@ Rpg-mz-mv-ai-/
 ├── _oneclick.ps1             # 一键安装的实际逻辑（ASCII 保护，避免代码页问题）
 ├── config.template.json      # 空白配置模板（不含任何 Key）
 ├── 安装说明.txt               # 完整手册（含全部版本历史与设计说明）
+├── LICENSE                   # MIT 许可证
 ├── _lore/                    # 通用提示词模板（跨游戏共用，不含任何作品的专有名词）
 │   ├── persona_prompt.json   #   角色人设提示词
 │   ├── persona_sample.json   #   人设样板（few-shot 范例 + 质量基准）
@@ -458,6 +465,9 @@ node tools/install.js "<游戏根目录>" --uninstall --purge --yes
 
 ## 许可
 
-本仓库暂未附带开源许可证文件。在许可证补充之前，默认保留所有权利（All rights reserved）。
+[MIT License](LICENSE) © 2026 mizhoudawang
 
-如果你打算在自己的项目里使用或再分发，请先通过 GitHub Issue 联系作者。
+简单说：**可以自由使用、修改、再分发，甚至可以商用**（比如装进你自己要卖的游戏里），
+唯一的要求是保留版权声明和许可证原文。软件按「原样」提供，不含任何担保。
+
+如果你想在 README 或游戏鸣谢里提一句，欢迎链接回本仓库 —— 但这不是强制的。
