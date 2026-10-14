@@ -1,0 +1,104 @@
+name: Release
+
+# 推送 v* 标签时自动创建 GitHub Release，并附上干净的「玩家成品包」。
+# 用的是 Actions 自带的 GITHUB_TOKEN，仓库不需要配置任何密钥。
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出标签对应代码
+        uses: actions/checkout@v4
+
+      - name: 打包「玩家成品包」
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          NAME="RM_AI_NPC-v${VER}"
+          mkdir -p dist
+          python3 - "$NAME" <<'PY'
+          import os, sys, zipfile
+
+          name = sys.argv[1]
+          # 只装玩家真正需要的：与包内 install.js / _oneclick.ps1 部署的内容一致
+          include = [
+              'RM_AI_NPC.js',
+              '一键安装.bat',
+              '_oneclick.ps1',
+              'config.template.json',
+              '安装说明.txt',
+              'LICENSE',
+              'README.md',
+              'tools',
+              '_lore',
+          ]
+          out = f'dist/{name}.zip'
+          with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+              for item in include:
+                  if not os.path.exists(item):
+                      print(f'  ! 跳过（不存在）: {item}')
+                      continue
+                  if os.path.isfile(item):
+                      z.write(item, f'{name}/{item}')
+                  else:
+                      for root, _dirs, files in os.walk(item):
+                          for f in sorted(files):
+                              p = os.path.join(root, f)
+                              z.write(p, f'{name}/{p}')
+          print(f'  打包完成: {out}')
+          PY
+          ls -lh dist/
+
+      - name: 校验压缩包
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          python3 - "dist/RM_AI_NPC-v${VER}.zip" "RM_AI_NPC-v${VER}" <<'PY'
+          import sys, zipfile
+          path, prefix = sys.argv[1], sys.argv[2]
+          with zipfile.ZipFile(path) as z:
+              bad = z.testzip()
+              assert bad is None, f'CRC 校验失败: {bad}'
+              names = z.namelist()
+              # 非 ASCII 文件名必须置 UTF-8 标志位，否则中文 Windows 解压会乱码
+              for i in z.infolist():
+                  if any(ord(c) > 127 for c in i.filename):
+                      assert i.flag_bits & 0x800, f'缺少 UTF-8 标志: {i.filename}'
+              # 一键安装.bat 必须在包的最外层
+              assert f'{prefix}/一键安装.bat' in names, '一键安装.bat 不在最外层'
+              assert f'{prefix}/_oneclick.ps1' in names, '_oneclick.ps1 缺失'
+              assert f'{prefix}/tools/l10n.js' in names, 'tools/l10n.js 缺失'
+              assert not [n for n in names if '.git' in n], '不应包含 .git* 文件'
+              print(f'  ✓ CRC 通过、UTF-8 标志齐全、共 {len(names)} 个文件')
+          PY
+
+      - name: 创建 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          NOTES=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$NOTES" ]; then
+            echo "  使用发行说明: $NOTES"
+            gh release create "$GITHUB_REF_NAME" \
+              dist/*.zip \
+              --title "RM_AI_NPC ${GITHUB_REF_NAME}" \
+              --notes-file "$NOTES" \
+              --verify-tag
+          else
+            echo "  未找到 $NOTES，改用自动生成的发行说明"
+            gh release create "$GITHUB_REF_NAME" \
+              dist/*.zip \
+              --title "RM_AI_NPC ${GITHUB_REF_NAME}" \
+              --generate-notes \
+              --verify-tag
+          fi
